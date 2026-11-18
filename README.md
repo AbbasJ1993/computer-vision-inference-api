@@ -183,3 +183,21 @@ digest for reproducible releases.
 ## Learning notes
 
 Earlier learning-step notes may describe deprecated synthetic routes such as `/benchmark/direct`, `/benchmark/thread`, and `/benchmark/process`; those endpoints are **not present** in this repository. The current deployment notes are in [Step 2.2.10](STEP_02_2_10.md).
+
+## License
+
+Copyright (C) 2026 AbbasJ1993.
+
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See the [LICENSE](LICENSE) file for the full license text.
+
+### Third-Party Dependencies
+
+This project integrates [Ultralytics YOLO](https://github.com/ultralytics/ultralytics), which is available under the AGPL-3.0 license or a separate Ultralytics Enterprise License.
+
+Ultralytics and its pretrained models remain subject to their respective licensing terms. Pretrained model weights are not distributed with this repository and must be obtained separately.
+
+See the [Ultralytics licensing documentation](https://www.ultralytics.com/license) for details.
+
+### Sample Data
+
+The `test_data/ai_generated_car.jpg` image was generated using AI for testing and demonstration purposes. See [test_data/README.md](test_data/README.md) for its provenance.
