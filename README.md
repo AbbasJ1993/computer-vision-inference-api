@@ -1,5 +1,7 @@
 # Computer Vision Inference API
 
+[![CI](https://github.com/AbbasJ1993/computer-vision-inference-api/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AbbasJ1993/computer-vision-inference-api/actions/workflows/ci.yml)
+
 A modular FastAPI service for validated image uploads and YOLO object detection, with a pluggable `Detector` protocol, controlled GPU concurrency, optional profiling, and bounded admission.
 
 > **Current step: 2.2.10 (Docker + CI).** The repository includes a CPU-only container and automated Linux/Windows tests. This is a demonstrator and benchmark project, not a fully hardened public-facing deployment.
