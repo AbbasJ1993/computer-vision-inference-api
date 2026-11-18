@@ -38,25 +38,92 @@ A dedicated thread owns each YOLO instance when `MODEL_POOL_WORKERS=1` or `2`; b
 
 ## Quick start (Windows, Python 3.12)
 
-Create and activate the project-specific virtual environment first:
+Run these commands from the repository root in PowerShell. Model files are
+**not included** in Git because `weights/` is gitignored. The application
+checks that `MODEL_PATH` exists at startup and does **not** download model
+weights itself.
+
+### 1. Create a virtual environment and install dependencies
 
 ```powershell
 py -3.12 -m venv cv-inference-api-env
 .\cv-inference-api-env\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-python -m pytest -q
+python -m pip install --upgrade pip
 python -m pip install -r requirements-model.txt
+```
+
+If PowerShell blocks activation, use
+`Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force`
+in that terminal and retry. To run the tests without installing model
+packages, use `python -m pip install -r requirements.txt` instead.
+
+**GPU option (Windows/NVIDIA, previously tested configuration):** after
+installing the model requirements, install the CUDA 12.1 PyTorch wheels:
+
+```powershell
+python -m pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
+python -c "import torch; print(torch.__version__); print('CUDA available:', torch.cuda.is_available())"
+python -m pip check
+```
+
+Only set `MODEL_DEVICE=0` when CUDA is available. For CPU-only operation,
+set `MODEL_DEVICE=cpu`; a CUDA-specific PyTorch build is not required.
+See [PyTorch version-specific install commands](https://pytorch.org/get-started/previous-versions/)
+for alternative hardware and environments.
+
+### 2. Download the YOLO11n weights
+
+With Internet access, Ultralytics can download the official pretrained
+`yolo11n.pt` model on first use. Create the target directory **first** and
+explicitly load the model into the location expected by this project:
+
+```powershell
+New-Item -ItemType Directory -Force '.\weights' | Out-Null
+python -c "from ultralytics import YOLO; YOLO('weights/yolo11n.pt')"
+Test-Path '.\weights\yolo11n.pt'  # Must return True
+```
+
+Source: [official Ultralytics YOLO11 models](https://github.com/ultralytics/yolo11).
+If you already have a legally obtained, compatible YOLO11 detection `.pt`
+file, copy it to `weights/yolo11n.pt` instead of downloading it again.
+**Do not commit model weights to this repository.** Keeping weights out of
+Git does not override their third-party license terms.
+
+### 3. Start the API with a real model
+
+For CPU inference:
+
+```powershell
 $env:MODEL_PATH = (Resolve-Path '.\weights\yolo11n.pt').Path
-$env:MODEL_DEVICE = '0'  # or 'cpu'
-$env:MODEL_POOL_WORKERS = '2'
+$env:MODEL_DEVICE = 'cpu'
+$env:MODEL_POOL_WORKERS = '1'
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-API docs: http://127.0.0.1:8000/docs
+For a CUDA-enabled GPU, use `$env:MODEL_DEVICE = '0'` instead. The model
+pool supports 0 (legacy semaphore), 1, or 2 independent thread-owned
+model instances. Start with 1; 2 increases GPU memory use.
 
-To run without a model, leave `MODEL_PATH` unset: `/health` returns 200, `/ready` returns 503, and `/v1/detect` returns 503. Tests use fake detectors and do not require CUDA or weights. On Windows, if PowerShell blocks venv activation, run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force` in that terminal before activating.
+In a **second** PowerShell window, verify readiness and run one inference:
 
-For a `.env` template, inspect `.env.example` (do not commit your real `.env`). Environment variables override `.env` and both override defaults. Restart the server when changing settings. For the container and CI setup, see **[Step 2.2.10](STEP_02_2_10.md)**.
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/ready
+curl.exe -X POST "http://127.0.0.1:8000/v1/detect" -F "image=@test_data/ai_generated_car.jpg;type=image/jpeg" -F "confidence_threshold=0.5"
+```
+
+With a successfully loaded model, `/ready` should return HTTP 200 and
+`/v1/detect` should return a JSON response containing `detections`.
+Object counts depend on model confidence and the image. API docs:
+http://127.0.0.1:8000/docs
+
+To run **without** a model, leave `MODEL_PATH` empty: `/health` returns 200,
+`/ready` returns 503, and `/v1/detect` returns 503. The automated tests use
+fake detectors and do not require model weights or CUDA.
+
+For configuration defaults, see `.env.example`. Copy it to `.env` for local
+settings but **never commit `.env`**. Environment variables override `.env`;
+restart Uvicorn after changing settings. For Docker and CI, see
+[Step 2.2.10](STEP_02_2_10.md).
 
 ## Docker (CPU-only model-free API)
 
@@ -108,7 +175,7 @@ The Docker CI smoke test does not reproduce or validate GPU throughput.
 Before public deployment, add proxy-level request limits, appropriate
 authentication, TLS, centralized metrics, logging, deployment-specific
 resource limits and an explicit review of third-party Ultralytics/model
-license obligations. Consider a dependency lockfile and pinned base-image
+license obligations (notably AGPL-3.0 versus Enterprise licensing). Consider a dependency lockfile and pinned base-image
 digest for reproducible releases.
 
 ## Learning notes
