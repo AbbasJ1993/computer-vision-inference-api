@@ -4,7 +4,7 @@
 
 A modular FastAPI service for validated image uploads and YOLO object detection, with a pluggable `Detector` protocol, controlled GPU concurrency, optional profiling, and bounded admission.
 
-> **Current step: 2.2.10 (Docker + CI).** The repository includes a CPU-only container and automated Linux/Windows tests. This is a demonstrator and benchmark project, not a fully hardened public-facing deployment.
+> **Project scope:** A tested, open-source inference API reference implementation with Linux/Windows CI and a lightweight CPU-only, model-free Docker image. This is a demonstrator and benchmark project, not a fully hardened public-facing deployment.
 
 ## API
 
@@ -156,8 +156,10 @@ will be addressed separately.
 The workflow at `.github/workflows/ci.yml` runs the **92-test suite** on
 Python 3.12 for Windows and Linux, builds the CPU-only Docker image and
 performs an HTTP smoke test. It requires neither a GPU nor model weights.
-Check the repository's **Actions** tab after pushing changes; the workflow
-has not executed on GitHub merely by existing locally.
+All three CI jobs have passed on GitHub. The CI badge at the top of this README
+shows the current status of the `main` branch; see the repository's
+[Actions tab](https://github.com/AbbasJ1993/computer-vision-inference-api/actions)
+for individual test runs. GitHub CI does **not** test model-loaded GPU inference.
 
 The runtime-only dependencies live in `requirements-runtime.txt`, the
 unit/integration-test dependencies in `requirements.txt`, and optional
@@ -177,8 +179,9 @@ The Docker CI smoke test does not reproduce or validate GPU throughput.
 Before public deployment, add proxy-level request limits, appropriate
 authentication, TLS, centralized metrics, logging, deployment-specific
 resource limits and an explicit review of third-party Ultralytics/model
-license obligations (notably AGPL-3.0 versus Enterprise licensing). Consider a dependency lockfile and pinned base-image
-digest for reproducible releases.
+license obligations (notably AGPL-3.0 versus Enterprise licensing).
+Consider a dependency lockfile and pinned base-image digest for
+reproducible releases.
 
 ## Learning notes
 
