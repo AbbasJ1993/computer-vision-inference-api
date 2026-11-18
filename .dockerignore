@@ -1,0 +1,37 @@
+# Keep secrets, model artifacts, local environments and test exports out
+# of the Docker build context. The Dockerfile copies only app/ + requirements.
+.git/
+.github/
+.env
+.env.*
+cv-inference-api-env/
+.venv/
+venv/
+env/
+**/__pycache__/
+**/*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.coverage*
+htmlcov/
+*.log
+logs/
+benchmark_results/
+weights/
+models/
+datasets/
+test_data/
+tests/
+scripts/
+docs/
+*.pt
+*.pth
+*.onnx
+*.engine
+*.torchscript
+*.tflite
+*.zip
+.vscode/
+.idea/

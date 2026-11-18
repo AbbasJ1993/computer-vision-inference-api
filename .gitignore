@@ -1,0 +1,67 @@
+# Python virtual environments (local only)
+/cv-inference-api-env/
+/.venv/
+/venv/
+/env/
+
+# Local environment configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Python interpreter caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test, lint, type-checking and coverage caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyre/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+junit.xml
+
+# Generated build and distribution files
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Downloaded and exported model weights (never commit by default)
+/weights/
+*.pt
+*.pth
+*.onnx
+*.engine
+*.torchscript
+*.tflite
+
+# Generated benchmark outputs, logs and temporary data
+/benchmark_results/
+/logs/
+*.log
+/tmp/
+/temp/
+
+# Local datasets (commit small licensed samples in test_data/ if useful)
+/datasets/
+
+# Local editors and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary root-level archives
+/*.zip
+
+# Original third-party image has unverified redistribution rights
+/test_data/2027-S-SEDAN-CH-MR.jpg

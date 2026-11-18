@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Tests / ${{ matrix.os }} / Python 3.12
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    env:
+      MODEL_PATH: ""
+      MODEL_DEVICE: cpu
+      MODEL_POOL_WORKERS: "0"
+      ENABLE_INFERENCE_PROFILING: "false"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Install Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements-runtime.txt
+            requirements.txt
+      - name: Install test dependencies (no model weights or GPU required)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip check
+      - name: Run tests
+        run: python -m pytest -q
+
+  docker-smoke:
+    name: Docker build + HTTP smoke test (CPU-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Build CPU-only image
+        run: docker build --tag cv-inference-api:ci .
+      - name: Start container without model weights
+        run: |
+          docker run -d --name cv-inference-api-ci \
+            -p 127.0.0.1:18000:8000 \
+            -e MODEL_PATH= \
+            cv-inference-api:ci
+      - name: Verify HTTP liveness and expected unready state
+        run: python3 scripts/smoke_http.py --base-url http://127.0.0.1:18000 --wait-seconds 45
+      - name: Show container logs
+        if: always()
+        run: docker logs cv-inference-api-ci || true
+      - name: Stop container
+        if: always()
+        run: docker rm -f cv-inference-api-ci || true
